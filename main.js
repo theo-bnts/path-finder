@@ -3,6 +3,7 @@ const { Chemin, Feuille, Graphe, Grille, Outils, Sommet } = require('./entites')
 const start_timestamp = new Date().getTime();
 
 const feuille = new Feuille('./assets/Map.xlsx', 'Sheet1');
+feuille.lire().then(() => {
 
 const grille = new Grille(feuille.vers_tableau('B2:V21'));
 const graphe = new Graphe(grille);
@@ -37,4 +38,11 @@ const chemin = chemins_possibles[0];
 
 chemin.afficher(sommets_bonus);
 
+for (const sommet of chemin.sommets) {
+    feuille.surbrillance_cellule('B2:V21', sommet.x, sommet.y);
+}
+
+feuille.ecrire('./assets/Output.xlsx');
+
 console.log('Temps d\'exécution : ' + (new Date().getTime() - start_timestamp) / 1000 + ' secondes');
+});
