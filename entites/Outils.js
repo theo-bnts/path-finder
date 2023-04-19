@@ -1,4 +1,12 @@
 class Outils {
+    static nombre_permutations(nombre_sommets) {
+        if (nombre_sommets <= 1) {
+            return 1;
+        } else {
+            return nombre_sommets * Outils.nombre_permutations(nombre_sommets - 1);
+        }
+    }
+
     static permutations(sommets) {
         let resultat = [];
 

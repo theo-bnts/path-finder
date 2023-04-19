@@ -1,6 +1,7 @@
 class Chemin {
-    constructor(sommets) {
+    constructor(sommets, distance) {
         this.sommets = sommets;
+        this.distance = distance;
     }
 
     toString() {
@@ -30,7 +31,7 @@ class Chemin {
     }
 
     points(sommets_bonus) {
-        return this.distance() - this.bonus(sommets_bonus);
+        return this.distance - this.bonus(sommets_bonus);
     }
 }
 
