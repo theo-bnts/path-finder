@@ -5,34 +5,23 @@ class Chemin {
     }
 
     toString() {
-        return '[' + this.sommets.join(', ') + '] (' + this.distance() + ')';
+        return '[' + this.sommets.join(', ') + '] (' + this.distance + ')';
     }
 
     afficher(sommets_bonus) {
         console.log('Chemin [(x, y), ...] : ' + this);
-        console.log('Distance : ' + this.distance());
+        console.log('Distance : ' + this.distance);
         console.log('Bonus : ' + this.bonus(sommets_bonus));
         console.log('Points : ' + this.points(sommets_bonus));
     }
 
-    distance() {
-        return this.sommets.reduce((total, sommet) => total + sommet.valeur, 0);
-    }
-
-    contient_sommet(sommet) {
-        return this.sommets.some(sommet_courant => sommet_courant.indice === sommet.indice);
-    }
-
-    bonus(sommets_bonus) {
-        return sommets_bonus.reduce((total, sommet_bonus) =>
-            this.contient_sommet(sommet_bonus) ? total + sommet_bonus.bonus : total,
-            0
-        );
+    bonus() {
+        return this.sommets.reduce((total, sommet) => total + sommet.bonus, 0);
     }
 
     points(sommets_bonus) {
-        return this.distance - this.bonus(sommets_bonus);
+        return this.bonus(sommets_bonus) - this.distance;
     }
 }
 
-module.exports = Chemin;
+export default Chemin;

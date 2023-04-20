@@ -1,28 +1,29 @@
 class Sommet {
-    constructor(...args) {
-        const [grille] = args;
+    constructor(x, y, valeur, bonus = 0) {
+        this.x = x;
+        this.y = y;
+        this.valeur = valeur;
+        this.bonus = bonus;
+    }
 
-        if (args.length === 2) {
-            const [_, indice] = args;
-
-            this.indice = indice;
-        } else if (args.length === 3) {
-            const [_, x, y] = args;
-
-            this.indice = y * grille.nb_colonnes + x;
-        }
-
-        this.x = this.indice % grille.nb_colonnes;
-        this.y = Math.floor(this.indice / grille.nb_colonnes);
-
-        this.valeur = grille.tableau[this.y][this.x];
-
-        this.bonus = 0;
+    indice(nb_colonnes) {
+        return Sommet.indice(this.x, this.y, nb_colonnes);
     }
 
     toString() {
         return '(' + (this.x + 1) + ', ' + (this.y + 1) + ')';
     }
+
+    static indice(x, y, nb_colonnes) {
+        return y * nb_colonnes + x;
+    }
+
+    static coordonnees(indice, nb_colonnes) {
+        return {
+            x: indice % nb_colonnes,
+            y: Math.floor(indice / nb_colonnes)
+        };
+    }
 }
 
-module.exports = Sommet;
+export default Sommet;

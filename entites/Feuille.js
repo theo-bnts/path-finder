@@ -1,5 +1,5 @@
-const _ = require('lodash');
-const ExcelJS = require('exceljs');
+import _ from 'lodash';
+import ExcelJS from 'exceljs';
 
 class Feuille {
     constructor(chemin, index) {
@@ -101,4 +101,4 @@ class Feuille {
     }
 }
 
-module.exports = Feuille;
+export default Feuille;

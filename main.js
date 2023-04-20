@@ -1,83 +1,80 @@
-const { Chemin, Feuille, Graphe, Grille, Outils, Sommet } = require('./entites');
+import { Chemin, Feuille, Graphe, Grille, Outils, Sommet } from './entites/index.js';
 
 const chemin_fichier_source = './assets/Map.xlsx';
 const chemin_fichier_sortie = './assets/Output.xlsx';
 const feuille_source = 'Sheet1';
 const plage_sommets = 'B2:V21';
-const plage_sommets_strategiques = 'W4:Y10';
-const plage_sommets_bonus = 'Z4:AC9';
+const plage_coordonnes_strategiques = 'W4:X10';
+const plage_coordonnes_bonus = 'Z4:AB10';
+const coordonnees_depart = [11 - 1, 19 - 1];
+const points_strategiques_obligatoires = [1 - 1, 3 - 1, 6 - 1, 7 - 1];
+const points_par_point_strategique = 30;
 
 const start_timestamp = new Date().getTime();
 
 // Lecture feuille
 const feuille = new Feuille(chemin_fichier_source, feuille_source);
-feuille.lire().then(() =>
-{
-    const grille = new Grille(feuille.vers_tableau(plage_sommets));
-    const graphe = new Graphe(grille);
+await feuille.lire();
 
-    // Lecture sommets à visiter et bonus
+// Lecture coordonnes stratégiques
+const coordonnes_strategiques = feuille.vers_tableau(plage_coordonnes_strategiques).map(cellule => [cellule[0] - 1, cellule[1] - 1]);
+const coordonnees_strategiques_obligatoires = coordonnes_strategiques.filter(coordonnees => points_strategiques_obligatoires.includes(coordonnes_strategiques.indexOf(coordonnees)));
 
-    const sommets_strategiques = feuille.vers_tableau(plage_sommets_strategiques).map(cellule => new Sommet(grille, cellule[0] - 1, cellule[1] - 1));
+// Lecture coordonnes bonus
+const coordonnees_et_valeurs_bonus = feuille.vers_tableau(plage_coordonnes_bonus);
+const coordonnees_bonus = coordonnees_et_valeurs_bonus.map(cellule => [cellule[0] - 1, cellule[1] - 1]);
+const valeurs_bonus = coordonnees_et_valeurs_bonus.map(cellule => cellule[2]);
 
-    const sommets_a_visiter = [sommets_strategiques[1 - 1], sommets_strategiques[3 - 1], sommets_strategiques[6 - 1], sommets_strategiques[7 - 1]]
+const coordonnees_speciales = [...coordonnes_strategiques, ...coordonnees_bonus]
+const valeurs_speciales = [...coordonnees_strategiques_obligatoires.map(() => points_par_point_strategique), ...valeurs_bonus]
 
-    const sommets_bonus = feuille.vers_tableau(plage_sommets_bonus)
-        .map(cellule => {
-            const sommet = new Sommet(grille, cellule[0] - 1, cellule[1] - 1);
-            sommet.bonus = cellule[2];
-            return sommet;
-        })
+// Liste des permutations de coordonnes stratégiques (obligatoires) et bonus (facultatives)
+const liste_coodonnes_visitees = Outils.permutations(coordonnees_speciales, coordonnees_strategiques_obligatoires)
+console.log('Nombre de permutations :', liste_coodonnes_visitees.length);
 
-    // Calcul de tous les chemins possibles
-    console.log('Calcul des permutations possibles');
+// Lecture valeurs points
+const valeurs_points = feuille.vers_tableau(plage_sommets);
+const grille = new Grille(valeurs_points, coordonnees_speciales, valeurs_speciales);
+const graphe = new Graphe(grille);
 
-    const nombre_permutations = Outils.nombre_permutations(sommets_a_visiter.length + sommets_bonus.length);
-    let permutations_traites = 0;
+// Calcul du chemin optimal
+let chemin_optimal = null;
+let points_maximaux = Number.MIN_SAFE_INTEGER;
 
-    const chemins_possibles = Outils.permutations([...sommets_a_visiter, ...sommets_bonus])
-        .map(sommets => {
-            if (permutations_traites % 1000000 === 0 || permutations_traites === 0 || permutations_traites === nombre_permutations) {
-                console.log(
-                    'Permutation ' + permutations_traites + ' / ' + nombre_permutations + ' - '
-                        + 'Temps restant : ' + ((new Date().getTime() - start_timestamp) / 1000 * (nombre_permutations - permutations_traites) / permutations_traites).toFixed(3) + ' secondes'
-                );
-            }
-            permutations_traites++
+for (const coordonnees_visitees of liste_coodonnes_visitees) {
+    coordonnees_visitees.unshift(coordonnees_depart);
 
-            sommets.unshift(new Sommet(grille, 11 - 1, 19 - 1));
+    const coordonnees_visitees_completes = [];
+    let distance_totale = 0;
 
-            let chemin_complet = [];
-            let distance_totale = 0;
+    for (let i = 0; i < coordonnees_visitees.length - 1; i++) {
+        const sommet_courant = grille.sommet(coordonnees_visitees[i][0], coordonnees_visitees[i][1]);
+        const sommet_suivant = grille.sommet(coordonnees_visitees[i + 1][0], coordonnees_visitees[i + 1][1]);
 
-            for (let i = 0; i < sommets.length - 1; i++) {
-                const { chemin, distance } = graphe.distance_minimale(sommets[i], sommets[i + 1]);
+        const { chemin, distance } = graphe.calculer_distance_minimale(sommet_courant, sommet_suivant);
 
-                chemin_complet.push(...chemin);
-                distance_totale += distance;
-            }
-
-            return new Chemin(chemin_complet, distance_totale);
-        })
-
-    // Calcul du meilleur chemin
-    console.log('Calcul du meilleur chemin');
-
-    chemins_possibles.sort((chemin_a, chemin_b) => chemin_a.points(sommets_bonus) - chemin_b.points(sommets_bonus));
-
-    // Affichage du meilleur chemin
-    console.log('Affichage du meilleur chemin');
-
-    const chemin = chemins_possibles[0];
-
-    for (const sommet of chemin.sommets) {
-        feuille.surbrillance_cellule(plage_sommets, sommet.x, sommet.y);
+        coordonnees_visitees_completes.push(...chemin);
+        distance_totale += distance;
     }
 
-    // Ecriture fichier
-    console.log('Ecriture fichier');
+    const chemin = new Chemin(coordonnees_visitees_completes, distance_totale);
+    const points = chemin.points();
 
-    feuille.ecrire(chemin_fichier_sortie);
+    if (points > points_maximaux) {
+        chemin_optimal = chemin;
+        points_maximaux = points;
+    }
+}
 
-    console.log('Temps d\'exécution : ' + (new Date().getTime() - start_timestamp) / 1000 + ' secondes');
-});
+// Affichage du meilleur chemin
+chemin_optimal.afficher();
+
+// Surbrillance du meilleur chemin
+for (const sommet of chemin_optimal.sommets) {
+    feuille.surbrillance_cellule(plage_sommets, sommet.x, sommet.y);
+}
+
+// Ecriture feuille
+feuille.ecrire(chemin_fichier_sortie);
+
+console.log('Temps d\'exécution : ' + (new Date().getTime() - start_timestamp) / 1000 + ' secondes');
