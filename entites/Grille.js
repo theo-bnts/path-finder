@@ -21,8 +21,15 @@ class Grille {
         this.nb_sommets = this.nb_lignes * this.nb_colonnes;
     }
 
-    sommet(x, y) {
-        return this.sommets[Sommet.indice(x, y, this.nb_colonnes)];
+    sommet(...args) {
+        if (args.length === 1) {
+            const [indice] = args;
+            return this.sommets[indice];
+        }
+        else {
+            const [x, y] = args;
+            return this.sommets[Sommet.indice(x, y, this.nb_colonnes)];
+        }
     }
 }
 

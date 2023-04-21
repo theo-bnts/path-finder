@@ -1,16 +1,16 @@
 import _ from 'lodash';
 
-import { Outils, Sommet } from './index.js';
+import { Outils } from './index.js';
 
 class Graphe {
     constructor(grille) {
         this.grille = grille;
-        this.matrice_adjacence = this.creer_matrice_adjacence();
-        this.distances_minimales = Outils.array(this.grille.nb_sommets, null);
+        this.matrice_adjacence_ = this.matrice_adjacence();
+        this.distances_minimales_ = Outils.tableau(this.grille.nb_sommets, null);
     }
 
-    creer_matrice_adjacence() {
-        const matrice_adjacence = Outils.two_dimensions_array(this.grille.nb_sommets, this.grille.nb_sommets, 0);
+    matrice_adjacence() {
+        const matrice_adjacence = Outils.tableau_2D(this.grille.nb_sommets, this.grille.nb_sommets, 0);
 
         for (const sommet of this.grille.sommets) {
             for (let y = -1; y <= 1; y++) {
@@ -36,8 +36,8 @@ class Graphe {
         return matrice_adjacence;
     }
 
-    calculer_distance_minimale(sommet_source, sommet_destination) {
-        const { chemins, distances } = this.calculer_distances_minimales(sommet_source);
+    distance_minimale(sommet_source, sommet_destination) {
+        const { chemins, distances } = this.distances_minimales(sommet_source);
 
         return {
             chemin: chemins[sommet_destination.indice(this.grille.nb_colonnes)],
@@ -45,23 +45,23 @@ class Graphe {
         };
     }
 
-    calculer_distances_minimales(sommet_source) {
+    distances_minimales(sommet_source) {
         const indice_sommet_source = sommet_source.indice(this.grille.nb_colonnes);
 
-        if (this.distances_minimales[indice_sommet_source] === null) {
-            this.distances_minimales[indice_sommet_source] = this.dijkstra(sommet_source);
+        if (this.distances_minimales_[indice_sommet_source] === null) {
+            this.distances_minimales_[indice_sommet_source] = this.dijkstra(sommet_source);
         }
 
-        return this.distances_minimales[indice_sommet_source];
+        return this.distances_minimales_[indice_sommet_source];
     }
 
 
     dijkstra(sommet_source) {
-        const sommets_traites = Outils.array(this.grille.nb_sommets, false);
+        const sommets_traites = Outils.tableau(this.grille.nb_sommets, false);
 
-        const chemins = Outils.array(this.grille.nb_sommets, []);
+        const chemins = Outils.tableau(this.grille.nb_sommets, []);
 
-        const distances = Outils.array(this.grille.nb_sommets - 1, Number.MAX_SAFE_INTEGER);
+        const distances = Outils.tableau(this.grille.nb_sommets - 1, Number.MAX_SAFE_INTEGER);
         distances[sommet_source.indice(this.grille.nb_colonnes)] = 0;
 
         _.times(this.grille.nb_sommets, () => {
@@ -74,17 +74,15 @@ class Graphe {
 
                 _.times(this.grille.nb_sommets, indice_sommet_boucle => {
                     if (
-                        this.matrice_adjacence[indice_sommet_courant][indice_sommet_boucle] > 0
+                        this.matrice_adjacence_[indice_sommet_courant][indice_sommet_boucle] > 0
                         && !sommets_traites[indice_sommet_boucle]
-                        && distances[indice_sommet_boucle] > distances[indice_sommet_courant] + this.matrice_adjacence[indice_sommet_courant][indice_sommet_boucle]
+                        && distances[indice_sommet_boucle] > distances[indice_sommet_courant] + this.matrice_adjacence_[indice_sommet_courant][indice_sommet_boucle]
                     ) {
-                        const { x, y } = Sommet.coordonnees(indice_sommet_boucle, this.grille.nb_colonnes);
-
                         chemins[indice_sommet_boucle]
-                            = [...chemins[indice_sommet_courant], this.grille.sommet(x, y)];
+                            = [...chemins[indice_sommet_courant], this.grille.sommet(indice_sommet_boucle)];
 
                         distances[indice_sommet_boucle]
-                            = distances[indice_sommet_courant] + this.matrice_adjacence[indice_sommet_courant][indice_sommet_boucle];
+                            = distances[indice_sommet_courant] + this.matrice_adjacence_[indice_sommet_courant][indice_sommet_boucle];
                     }
                 });
             }
@@ -99,8 +97,7 @@ class Graphe {
 
         _.times(this.grille.nb_sommets, indice_sommet => {
             if (!sommets_traites[indice_sommet] && distances[indice_sommet] < distance_minimale) {
-                const { x, y } = Sommet.coordonnees(indice_sommet, this.grille.nb_colonnes);
-                sommet = this.grille.sommet(x, y);
+                sommet = this.grille.sommet(indice_sommet);
 
                 distance_minimale = distances[indice_sommet];
             }
