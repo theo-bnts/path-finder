@@ -5,7 +5,7 @@ class Chemin {
     }
 
     toString() {
-        return '[' + this.sommets.join(', ') + '] (' + this.distance + ')';
+        return '[' + this.sommets.join(', ') + ']';
     }
 
     afficher(sommets_bonus) {
@@ -16,7 +16,7 @@ class Chemin {
     }
 
     bonus() {
-        return this.sommets.reduce((total, sommet) => total + sommet.bonus, 0);
+        return [...new Set(this.sommets)].reduce((total, sommet) => total + sommet.bonus, 0);
     }
 
     points(sommets_bonus) {

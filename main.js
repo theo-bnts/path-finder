@@ -26,7 +26,7 @@ const coordonnees_bonus = coordonnees_et_valeurs_bonus.map(cellule => [cellule[0
 const valeurs_bonus = coordonnees_et_valeurs_bonus.map(cellule => cellule[2]);
 
 const coordonnees_speciales = [...coordonnees_strategiques, ...coordonnees_bonus]
-const valeurs_speciales = [...coordonnees_strategiques_obligatoires.map(() => points_par_point_strategique), ...valeurs_bonus]
+const valeurs_speciales = [...coordonnees_strategiques.map(() => points_par_point_strategique), ...valeurs_bonus]
 
 // Liste des permutations de coordonnes stratégiques (obligatoires) et bonus (facultatives)
 const liste_coodonnes_visitees = Outils.permutations(coordonnees_speciales, coordonnees_strategiques_obligatoires)
